@@ -22,6 +22,14 @@ import {
   Calendar,
   Save,
   Upload,
+  MessageCircle,
+  Wallet,
+  QrCode,
+  Key,
+  Smartphone,
+  ExternalLink,
+  DollarSign,
+  ArrowUpDown,
 } from "lucide-react";
 import { useTheme } from "@/components/ui/theme-provider";
 import { useToast } from "@/hooks/use-toast";
@@ -58,6 +66,23 @@ const Settings = () => {
     showEarnings: false,
   });
 
+  const [chatSettings, setChatSettings] = useState({
+    readReceipts: true,
+    typingIndicators: true,
+    messageSync: true,
+    autoTranslate: false,
+    blockSpam: true,
+  });
+
+  const [walletSettings, setWalletSettings] = useState({
+    autoWithdraw: false,
+    withdrawThreshold: 100,
+    enableNotifications: true,
+    requireConfirmation: true,
+  });
+
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+
   const handleSaveProfile = () => {
     toast({
       title: "Profile Updated",
@@ -79,6 +104,30 @@ const Settings = () => {
     });
   };
 
+  const handleSaveChatSettings = () => {
+    toast({
+      title: "Chat Settings Saved",
+      description: "Your chat preferences have been updated.",
+    });
+  };
+
+  const handleSaveWalletSettings = () => {
+    toast({
+      title: "Wallet Settings Saved",
+      description: "Your wallet preferences have been updated.",
+    });
+  };
+
+  const handleEnable2FA = () => {
+    setTwoFactorEnabled(!twoFactorEnabled);
+    toast({
+      title: twoFactorEnabled ? "2FA Disabled" : "2FA Enabled",
+      description: twoFactorEnabled 
+        ? "Two-factor authentication has been disabled." 
+        : "Two-factor authentication has been enabled for your account.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container py-8">
@@ -91,10 +140,12 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
+            <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="wallet">Wallet</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
@@ -414,6 +465,180 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="chat" className="space-y-6">
+            <Card className="card-glow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  Chat Settings
+                </CardTitle>
+                <CardDescription>
+                  Customize your messaging and chat preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Read Receipts</p>
+                      <p className="text-sm text-muted-foreground">Show when you've read messages</p>
+                    </div>
+                    <Switch
+                      checked={chatSettings.readReceipts}
+                      onCheckedChange={(checked) => 
+                        setChatSettings(prev => ({ ...prev, readReceipts: checked }))
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Typing Indicators</p>
+                      <p className="text-sm text-muted-foreground">Show when you're typing</p>
+                    </div>
+                    <Switch
+                      checked={chatSettings.typingIndicators}
+                      onCheckedChange={(checked) => 
+                        setChatSettings(prev => ({ ...prev, typingIndicators: checked }))
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Message Sync</p>
+                      <p className="text-sm text-muted-foreground">Sync messages across all devices</p>
+                    </div>
+                    <Switch
+                      checked={chatSettings.messageSync}
+                      onCheckedChange={(checked) => 
+                        setChatSettings(prev => ({ ...prev, messageSync: checked }))
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Auto-translate Messages</p>
+                      <p className="text-sm text-muted-foreground">Automatically translate messages to your language</p>
+                    </div>
+                    <Switch
+                      checked={chatSettings.autoTranslate}
+                      onCheckedChange={(checked) => 
+                        setChatSettings(prev => ({ ...prev, autoTranslate: checked }))
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Block Spam</p>
+                      <p className="text-sm text-muted-foreground">Automatically filter spam messages</p>
+                    </div>
+                    <Switch
+                      checked={chatSettings.blockSpam}
+                      onCheckedChange={(checked) => 
+                        setChatSettings(prev => ({ ...prev, blockSpam: checked }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <Button onClick={handleSaveChatSettings} className="w-full md:w-auto">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Chat Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="wallet" className="space-y-6">
+            <Card className="card-glow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5" />
+                  Wallet Settings
+                </CardTitle>
+                <CardDescription>
+                  Manage your Pi wallet and payment preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Auto-withdraw</p>
+                      <p className="text-sm text-muted-foreground">Automatically withdraw when balance reaches threshold</p>
+                    </div>
+                    <Switch
+                      checked={walletSettings.autoWithdraw}
+                      onCheckedChange={(checked) => 
+                        setWalletSettings(prev => ({ ...prev, autoWithdraw: checked }))
+                      }
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="withdraw-threshold">Auto-withdraw Threshold (π)</Label>
+                    <Input
+                      id="withdraw-threshold"
+                      type="number"
+                      value={walletSettings.withdrawThreshold}
+                      onChange={(e) => setWalletSettings(prev => ({ ...prev, withdrawThreshold: Number(e.target.value) }))}
+                      disabled={!walletSettings.autoWithdraw}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Payment Notifications</p>
+                      <p className="text-sm text-muted-foreground">Get notified about all wallet transactions</p>
+                    </div>
+                    <Switch
+                      checked={walletSettings.enableNotifications}
+                      onCheckedChange={(checked) => 
+                        setWalletSettings(prev => ({ ...prev, enableNotifications: checked }))
+                      }
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Transaction Confirmation</p>
+                      <p className="text-sm text-muted-foreground">Require confirmation for all transactions</p>
+                    </div>
+                    <Switch
+                      checked={walletSettings.requireConfirmation}
+                      onCheckedChange={(checked) => 
+                        setWalletSettings(prev => ({ ...prev, requireConfirmation: checked }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Quick Actions
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button variant="outline" className="flex items-center justify-center">
+                      <ArrowUpDown className="mr-2 h-4 w-4" />
+                      View Transactions
+                    </Button>
+                    <Button variant="outline" className="flex items-center justify-center">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Connect Pi Wallet
+                    </Button>
+                  </div>
+                </div>
+
+                <Button onClick={handleSaveWalletSettings} className="w-full md:w-auto">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Wallet Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="appearance" className="space-y-6">
             <Card className="card-glow">
               <CardHeader>
@@ -484,12 +709,65 @@ const Settings = () => {
                 <Separator />
 
                 {/* Two-Factor Authentication */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Add an extra layer of security to your account
-                  </p>
-                  <Button variant="outline">Enable 2FA</Button>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        Two-Factor Authentication
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Add an extra layer of security to your account
+                      </p>
+                    </div>
+                    <Badge variant={twoFactorEnabled ? "default" : "secondary"}>
+                      {twoFactorEnabled ? "Enabled" : "Disabled"}
+                    </Badge>
+                  </div>
+                  
+                  {!twoFactorEnabled ? (
+                    <div className="rounded-lg border border-border/50 p-4 bg-muted/30">
+                      <div className="flex items-start gap-4">
+                        <div className="rounded-lg bg-primary/10 p-3">
+                          <QrCode className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1 space-y-3">
+                          <div>
+                            <h4 className="font-medium">Secure Your Account</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Enable 2FA to protect your account with an additional layer of security
+                            </p>
+                          </div>
+                          <Button onClick={handleEnable2FA} className="w-full sm:w-auto">
+                            <Smartphone className="mr-2 h-4 w-4" />
+                            Enable 2FA
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/30">
+                        <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                          <Shield className="h-4 w-4" />
+                          <span className="font-medium">2FA is Active</span>
+                        </div>
+                        <p className="text-sm text-green-600 dark:text-green-300 mt-1">
+                          Your account is protected with two-factor authentication
+                        </p>
+                      </div>
+                      
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <Button variant="outline" size="sm">
+                          <Key className="mr-2 h-3 w-3" />
+                          Backup Codes
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handleEnable2FA}>
+                          Disable 2FA
+                        </Button>
+                      </div>
+                     </div>
+                   )}
                 </div>
 
                 <Separator />
