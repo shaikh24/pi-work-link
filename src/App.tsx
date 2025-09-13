@@ -11,6 +11,8 @@ import Wallet from "./pages/Wallet";
 import Login from "./pages/Login";
 import Browse from "./pages/Browse";
 import Settings from "./pages/Settings";
+import Messages from "./pages/Messages";
+import PostJob from "./pages/PostJob";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/browse" element={<Browse />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/post-job" element={<PostJob />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,5 +1,11 @@
 import { useState } from "react";
 import heroImage from "@/assets/hero-bg.jpg";
+import webDevGig from "@/assets/gig-web-dev.jpg";
+import designGig from "@/assets/gig-design.jpg";
+import writingGig from "@/assets/gig-writing.jpg";
+import videoGig from "@/assets/gig-video.jpg";
+import avatarAlex from "@/assets/avatar-alex.jpg";
+import avatarSarah from "@/assets/avatar-sarah.jpg";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,12 +46,12 @@ const featuredGigs = [
     price: 125.50,
     freelancer: {
       name: "Sarah Chen",
-      avatar: "",
+      avatar: avatarSarah,
       rating: 4.9,
       reviewCount: 127,
       level: "Level 2 Seller",
     },
-    image: "/api/placeholder/300/200",
+    image: webDevGig,
     tags: ["React", "Node.js", "MongoDB"],
     deliveryTime: 5,
   },
@@ -61,7 +67,7 @@ const featuredGigs = [
       reviewCount: 89,
       level: "Top Rated Seller",
     },
-    image: "/api/placeholder/300/200",
+    image: designGig,
     tags: ["UI/UX", "Figma", "Mobile"],
     deliveryTime: 3,
   },
@@ -77,7 +83,7 @@ const featuredGigs = [
       reviewCount: 234,
       level: "Level 1 Seller",
     },
-    image: "/api/placeholder/300/200",
+    image: writingGig,
     tags: ["Content Writing", "SEO", "Blog"],
     deliveryTime: 2,
   },
@@ -88,12 +94,12 @@ const featuredGigs = [
     price: 199.99,
     freelancer: {
       name: "David Kim",
-      avatar: "",
+      avatar: avatarAlex,
       rating: 4.9,
       reviewCount: 67,
       level: "Level 2 Seller",
     },
-    image: "/api/placeholder/300/200",
+    image: videoGig,
     tags: ["Video Editing", "Motion Graphics", "Brand"],
     deliveryTime: 7,
   },
@@ -106,7 +112,7 @@ const topFreelancers = [
     rating: 5.0,
     completedJobs: 156,
     location: "San Francisco, CA",
-    avatar: "",
+    avatar: avatarAlex,
     skills: ["React", "Python", "AWS"],
     hourlyRate: 75.50,
   },
@@ -116,7 +122,7 @@ const topFreelancers = [
     rating: 4.9,
     completedJobs: 89,
     location: "Barcelona, Spain",
-    avatar: "",
+    avatar: avatarSarah,
     skills: ["Branding", "Logo Design", "Adobe CC"],
     hourlyRate: 45.25,
   },
@@ -185,7 +191,7 @@ export default function Home() {
               </Button>
               <Button size="lg" variant="outline" className="btn-glass" asChild>
                 <Link to="/post-job">
-                  How it works
+                  Post a Job
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
