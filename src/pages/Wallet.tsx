@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import {
   Wallet as WalletIcon,
   ArrowUpRight,
@@ -20,69 +21,102 @@ import {
   Shield,
   Clock,
   CheckCircle,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { walletAPI, WalletData, Transaction } from "@/components/wallet/WalletAPI";
 
 const Wallet = () => {
   const [showBalance, setShowBalance] = useState(true);
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawAddress, setWithdrawAddress] = useState("");
+  const [walletData, setWalletData] = useState<WalletData | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [piNetworkBalance, setPiNetworkBalance] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Mock wallet data
-  const walletData = {
-    balance: 1250.75,
-    pendingBalance: 125.50,
-    totalEarnings: 5847.25,
-    monthlyChange: 15.8,
-    walletAddress: "GDR4...X7H9",
-    fullAddress: "GDR4WXYZ1234ABCD5678EFGH9012IJKL3456MNOP7890QRST1234UVWX7H9",
+  // Load wallet data and transactions on component mount
+  useEffect(() => {
+    loadWalletData();
+    loadTransactions();
+  }, []);
+
+  const loadWalletData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await walletAPI.getWalletData();
+      setWalletData(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load wallet data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const transactions = [
-    {
-      id: 1,
-      type: "received",
-      description: "Job Payment - React Dashboard",
-      amount: 125.50,
-      date: "2024-01-12 14:30",
-      status: "completed",
-      from: "TechCorp Inc.",
-      txHash: "0x1234...abcd",
-    },
-    {
-      id: 2,
-      type: "withdraw",
-      description: "Withdrawal to External Wallet",
-      amount: -200.00,
-      date: "2024-01-10 09:15",
-      status: "completed",
-      to: "External Wallet",
-      txHash: "0x5678...efgh",
-    },
-    {
-      id: 3,
-      type: "deposit",
-      description: "Pi Wallet Deposit",
-      amount: 500.00,
-      date: "2024-01-08 16:45",
-      status: "completed",
-      from: "Pi Network",
-      txHash: "0x9012...ijkl",
-    },
-    {
-      id: 4,
-      type: "escrow",
-      description: "Escrow Hold - Mobile App Design",
-      amount: -89.99,
-      date: "2024-01-07 11:20",
-      status: "pending",
-      to: "Escrow",
-      txHash: "0x3456...mnop",
-    },
-  ];
+  const loadTransactions = async () => {
+    try {
+      const data = await walletAPI.getTransactions();
+      setTransactions(data);
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to load transactions",
+        variant: "destructive",
+      });
+    }
+  };
 
-  const handleDeposit = () => {
+  const refreshWallet = async () => {
+    await loadWalletData();
+    await loadTransactions();
+    toast({
+      title: "Wallet Refreshed",
+      description: "Your wallet data has been updated",
+    });
+  };
+
+  const connectPiWallet = async () => {
+    try {
+      setIsLoading(true);
+      const result = await walletAPI.connectPiWallet();
+      
+      if (result.success) {
+        toast({
+          title: "Pi Wallet Connected",
+          description: `Connected to wallet: ${result.address}`,
+        });
+        
+        // Get Pi Network balance
+        const balanceResult = await walletAPI.getPiNetworkBalance();
+        if (balanceResult.success) {
+          setPiNetworkBalance(balanceResult.balance!);
+        }
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to connect Pi Wallet",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeposit = async () => {
     if (!depositAmount || parseFloat(depositAmount) <= 0) {
       toast({
         title: "Invalid Amount",
@@ -92,14 +126,37 @@ const Wallet = () => {
       return;
     }
     
-    toast({
-      title: "Deposit Initiated",
-      description: `Depositing ${depositAmount} π to your wallet`,
-    });
-    setDepositAmount("");
+    try {
+      setIsLoading(true);
+      const result = await walletAPI.depositPi(parseFloat(depositAmount));
+      
+      if (result.success) {
+        toast({
+          title: "Deposit Successful",
+          description: `Successfully deposited ${depositAmount} π`,
+        });
+        setDepositAmount("");
+        await loadWalletData();
+        await loadTransactions();
+      } else {
+        toast({
+          title: "Deposit Failed",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process deposit",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleWithdraw = () => {
+  const handleWithdraw = async () => {
     if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
       toast({
         title: "Invalid Amount", 
@@ -109,7 +166,16 @@ const Wallet = () => {
       return;
     }
 
-    if (parseFloat(withdrawAmount) > walletData.balance) {
+    if (!withdrawAddress || withdrawAddress.length < 10) {
+      toast({
+        title: "Invalid Address",
+        description: "Please enter a valid Pi wallet address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (walletData && parseFloat(withdrawAmount) > walletData.balance) {
       toast({
         title: "Insufficient Balance",
         description: "You don't have enough π to withdraw this amount",
@@ -118,19 +184,45 @@ const Wallet = () => {
       return;
     }
 
-    toast({
-      title: "Withdrawal Initiated",
-      description: `Withdrawing ${withdrawAmount} π from your wallet`,
-    });
-    setWithdrawAmount("");
+    try {
+      setIsLoading(true);
+      const result = await walletAPI.withdrawPi(parseFloat(withdrawAmount), withdrawAddress);
+      
+      if (result.success) {
+        toast({
+          title: "Withdrawal Initiated",
+          description: `Withdrawal of ${withdrawAmount} π has been initiated`,
+        });
+        setWithdrawAmount("");
+        setWithdrawAddress("");
+        await loadWalletData(); 
+        await loadTransactions();
+      } else {
+        toast({
+          title: "Withdrawal Failed",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to process withdrawal",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(walletData.fullAddress);
-    toast({
-      title: "Address Copied",
-      description: "Wallet address copied to clipboard",
-    });
+    if (walletData) {
+      navigator.clipboard.writeText(walletData.fullAddress);
+      toast({
+        title: "Address Copied",
+        description: "Wallet address copied to clipboard",
+      });
+    }
   };
 
   const getTransactionIcon = (type: string) => {
@@ -160,11 +252,17 @@ const Wallet = () => {
     <div className="min-h-screen bg-background">
       <div className="container py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Wallet</h1>
-          <p className="text-muted-foreground">
-            Manage your Pi cryptocurrency balance and transactions
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Wallet</h1>
+            <p className="text-muted-foreground">
+              Manage your Pi cryptocurrency balance and transactions
+            </p>
+          </div>
+          <Button onClick={refreshWallet} variant="outline" disabled={isLoading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
         </div>
 
         {/* Balance Cards */}
@@ -182,16 +280,25 @@ const Wallet = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-accent">
-                {showBalance ? `${walletData.balance.toFixed(2)} π` : "•••• π"}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                <span className="inline-flex items-center text-success">
-                  <TrendingUp className="mr-1 h-3 w-3" />
-                  +{walletData.monthlyChange}%
-                </span>{" "}
-                this month
-              </p>
+              {walletData ? (
+                <>
+                  <div className="text-3xl font-bold text-accent">
+                    {showBalance ? `${walletData.balance.toFixed(2)} π` : "•••• π"}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="inline-flex items-center text-success">
+                      <TrendingUp className="mr-1 h-3 w-3" />
+                      +{walletData.monthlyChange}%
+                    </span>{" "}
+                    this month
+                  </p>
+                </>
+              ) : (
+                <div className="animate-pulse">
+                  <div className="h-8 bg-secondary rounded mb-2"></div>
+                  <div className="h-4 bg-secondary rounded w-24"></div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -201,12 +308,21 @@ const Wallet = () => {
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">
-                {showBalance ? `${walletData.pendingBalance.toFixed(2)} π` : "••• π"}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Awaiting completion
-              </p>
+              {walletData ? (
+                <>
+                  <div className="text-2xl font-bold text-warning">
+                    {showBalance ? `${walletData.pendingBalance.toFixed(2)} π` : "••• π"}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Awaiting completion
+                  </p>
+                </>
+              ) : (
+                <div className="animate-pulse">
+                  <div className="h-6 bg-secondary rounded mb-2"></div>
+                  <div className="h-3 bg-secondary rounded w-20"></div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -216,12 +332,21 @@ const Wallet = () => {
               <WalletIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {showBalance ? `${walletData.totalEarnings.toFixed(2)} π` : "•••• π"}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                All-time earnings
-              </p>
+              {walletData ? (
+                <>
+                  <div className="text-2xl font-bold">
+                    {showBalance ? `${walletData.totalEarnings.toFixed(2)} π` : "•••• π"}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    All-time earnings
+                  </p>
+                </>
+              ) : (
+                <div className="animate-pulse">
+                  <div className="h-6 bg-secondary rounded mb-2"></div>
+                  <div className="h-3 bg-secondary rounded w-24"></div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -238,15 +363,19 @@ const Wallet = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center space-x-2 rounded-lg bg-secondary p-3">
-              <code className="flex-1 text-sm font-mono">{walletData.fullAddress}</code>
-              <Button variant="ghost" size="icon" onClick={copyAddress}>
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-            </div>
+            {walletData ? (
+              <div className="flex items-center space-x-2 rounded-lg bg-secondary p-3">
+                <code className="flex-1 text-sm font-mono">{walletData.fullAddress}</code>
+                <Button variant="ghost" size="icon" onClick={copyAddress}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon">
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="animate-pulse h-12 bg-secondary rounded-lg"></div>
+            )}
           </CardContent>
         </Card>
 
@@ -285,10 +414,26 @@ const Wallet = () => {
                   <p className="text-sm text-muted-foreground">
                     Connect your Pi Network wallet to transfer Pi directly to WorkChain
                   </p>
+                  {piNetworkBalance !== null && (
+                    <div className="mt-2 p-2 bg-primary/10 rounded">
+                      <p className="text-sm">Available: {piNetworkBalance.toFixed(2)} π</p>
+                    </div>
+                  )}
                 </div>
-                <Button onClick={handleDeposit} className="w-full">
-                  Connect Pi Wallet & Deposit
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={connectPiWallet} variant="outline" className="flex-1" disabled={isLoading}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    Connect Pi Wallet
+                  </Button>
+                  <Button onClick={handleDeposit} className="flex-1" disabled={isLoading || !depositAmount}>
+                    {isLoading ? (
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ArrowDownRight className="mr-2 h-4 w-4" />
+                    )}
+                    Deposit
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
@@ -318,7 +463,7 @@ const Wallet = () => {
                     onChange={(e) => setWithdrawAmount(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Available: {walletData.balance.toFixed(2)} π
+                    Available: {walletData?.balance.toFixed(2) || "0.00"} π
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -326,6 +471,8 @@ const Wallet = () => {
                   <Input
                     id="withdraw-address"
                     placeholder="Enter Pi wallet address"
+                    value={withdrawAddress}
+                    onChange={(e) => setWithdrawAddress(e.target.value)}
                   />
                 </div>
                 <div className="rounded-lg bg-warning/10 border border-warning/20 p-4">
@@ -337,7 +484,12 @@ const Wallet = () => {
                     Withdrawals are processed within 24 hours. Double-check the address before confirming.
                   </p>
                 </div>
-                <Button onClick={handleWithdraw} className="w-full">
+                <Button onClick={handleWithdraw} className="w-full" disabled={isLoading || !withdrawAmount || !withdrawAddress}>
+                  {isLoading ? (
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ArrowUpRight className="mr-2 h-4 w-4" />
+                  )}
                   Confirm Withdrawal
                 </Button>
               </div>

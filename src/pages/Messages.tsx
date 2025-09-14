@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   Search,
   Send,
@@ -17,8 +19,19 @@ import {
   FileText,
   Clock,
   CheckCheck,
+  PhoneCall,
+  VideoIcon,
+  Mic,
+  MicOff,
+  PhoneOff,
+  Archive,
+  Trash2,
+  Flag,
+  UserX,
+  Settings,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 interface Chat {
   id: string;
@@ -45,6 +58,12 @@ const Messages = () => {
   const [selectedChat, setSelectedChat] = useState<string>("1");
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [callType, setCallType] = useState<"audio" | "video" | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const chats: Chat[] = [
     {
@@ -161,6 +180,75 @@ const Messages = () => {
     }
   };
 
+  const startCall = (type: "audio" | "video") => {
+    setCallType(type);
+    setIsCallActive(true);
+    toast({
+      title: `${type === "audio" ? "Audio" : "Video"} Call Started`,
+      description: `Calling ${selectedChatData?.name}...`,
+    });
+  };
+
+  const endCall = () => {
+    setCallType(null);
+    setIsCallActive(false);
+    setIsMuted(false);
+    setIsVideoOn(true);
+    toast({
+      title: "Call Ended",
+      description: "Call has been disconnected.",
+    });
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    toast({
+      title: isMuted ? "Unmuted" : "Muted",
+      description: `Microphone ${isMuted ? "enabled" : "disabled"}`,
+    });
+  };
+
+  const toggleVideo = () => {
+    setIsVideoOn(!isVideoOn);
+    toast({
+      title: isVideoOn ? "Video Off" : "Video On",
+      description: `Camera ${isVideoOn ? "disabled" : "enabled"}`,
+    });
+  };
+
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      toast({
+        title: "File Uploaded",
+        description: `${files[0].name} has been attached to your message.`,
+      });
+    }
+  };
+
+  const handleChatAction = (action: string) => {
+    switch (action) {
+      case "archive":
+        toast({ title: "Chat Archived", description: "This conversation has been archived." });
+        break;
+      case "delete":
+        toast({ title: "Chat Deleted", description: "This conversation has been deleted." });
+        break;
+      case "report":
+        toast({ title: "Chat Reported", description: "This conversation has been reported." });
+        break;
+      case "block":
+        toast({ title: "User Blocked", description: "This user has been blocked." });
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container py-8">
@@ -267,15 +355,43 @@ const Messages = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => startCall("audio")}>
                         <Phone className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => startCall("video")}>
                         <Video className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onClick={() => handleChatAction("archive")}>
+                            <Archive className="mr-2 h-4 w-4" />
+                            Archive Chat
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleChatAction("delete")}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Chat
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleChatAction("report")}>
+                            <Flag className="mr-2 h-4 w-4" />
+                            Report User
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleChatAction("block")}>
+                            <UserX className="mr-2 h-4 w-4" />
+                            Block User
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>
+                            <Settings className="mr-2 h-4 w-4" />
+                            Chat Settings
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
 
@@ -321,16 +437,24 @@ const Messages = () => {
                   <div className="p-4 border-t">
                     <div className="flex items-end gap-2">
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleFileUpload}>
                           <Paperclip className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleFileUpload}>
                           <Image className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleFileUpload}>
                           <FileText className="h-4 w-4" />
                         </Button>
                       </div>
+                      
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf,.doc,.docx,.txt"
+                      />
                       
                       <div className="flex-1 relative">
                         <Input
@@ -373,6 +497,83 @@ const Messages = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Call Dialog */}
+        <Dialog open={isCallActive} onOpenChange={(open) => !open && endCall()}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {callType === "audio" ? <PhoneCall className="h-5 w-5" /> : <VideoIcon className="h-5 w-5" />}
+                {callType === "audio" ? "Audio Call" : "Video Call"}
+              </DialogTitle>
+              <DialogDescription>
+                {callType === "audio" ? "Audio call" : "Video call"} with {selectedChatData?.name}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="flex flex-col items-center py-8">
+              <div className="relative mb-6">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={selectedChatData?.avatar} />
+                  <AvatarFallback className="text-2xl bg-gradient-primary text-white">
+                    {selectedChatData?.name.split(" ").map(n => n[0]).join("")}
+                  </AvatarFallback>
+                </Avatar>
+                {selectedChatData?.isOnline && (
+                  <div className="absolute -bottom-2 -right-2 h-6 w-6 rounded-full bg-success border-4 border-background" />
+                )}
+              </div>
+              
+              <h3 className="text-lg font-semibold mb-2">{selectedChatData?.name}</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                {callType === "audio" ? "Audio call in progress..." : "Video call in progress..."}
+              </p>
+              
+              <div className="flex items-center gap-4">
+                {callType === "audio" && (
+                  <Button
+                    variant={isMuted ? "default" : "outline"}
+                    size="icon"
+                    className="h-12 w-12 rounded-full"
+                    onClick={toggleMute}
+                  >
+                    {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
+                )}
+                
+                {callType === "video" && (
+                  <>
+                    <Button
+                      variant={isMuted ? "default" : "outline"}
+                      size="icon"
+                      className="h-12 w-12 rounded-full"
+                      onClick={toggleMute}
+                    >
+                      {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                    </Button>
+                    <Button
+                      variant={!isVideoOn ? "default" : "outline"} 
+                      size="icon"
+                      className="h-12 w-12 rounded-full"
+                      onClick={toggleVideo}
+                    >
+                      <VideoIcon className="h-5 w-5" />
+                    </Button>
+                  </>
+                )}
+                
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="h-12 w-12 rounded-full"
+                  onClick={endCall}
+                >
+                  <PhoneOff className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

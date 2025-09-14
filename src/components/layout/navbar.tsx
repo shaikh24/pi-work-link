@@ -27,6 +27,8 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { useTheme } from "@/components/ui/theme-provider";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import SearchWithCategories from "@/components/search/SearchWithCategories";
 
 export const Navbar = () => {
   const location = useLocation();
@@ -60,13 +62,13 @@ export const Navbar = () => {
 
         {/* Search Bar */}
         <div className="mx-6 flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search gigs, freelancers..."
-              className="pl-10 bg-secondary/50 border-border/50 focus:bg-card"
-            />
-          </div>
+          <SearchWithCategories 
+            onSearch={(query, category) => {
+              console.log("Search:", query, "Category:", category);
+              // Navigate to browse page with search params
+            }}
+            placeholder="Search gigs, freelancers..."
+          />
         </div>
 
         {/* Desktop Navigation */}
@@ -94,38 +96,7 @@ export const Navbar = () => {
           </Button>
 
           {/* Notifications */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-4 w-4" />
-                {user.notifications > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-destructive">
-                    {user.notifications}
-                  </Badge>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-medium">New job posted</p>
-                  <p className="text-xs text-muted-foreground">
-                    React Developer needed for Web3 project
-                  </p>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-medium">Payment received</p>
-                  <p className="text-xs text-muted-foreground">
-                    125.5 π deposited to your wallet
-                  </p>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NotificationCenter />
 
           {/* Messages */}
           <Button variant="ghost" size="icon" className="relative" asChild>

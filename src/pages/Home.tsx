@@ -28,6 +28,7 @@ import {
   Briefcase,
   ArrowRight,
 } from "lucide-react";
+import SearchWithCategories from "@/components/search/SearchWithCategories";
 
 const categories = [
   { icon: Code, name: "Development", count: 2451, color: "bg-blue-500" },
@@ -164,21 +165,14 @@ export default function Home() {
             
             {/* Search Bar */}
             <div className="mx-auto mb-8 max-w-2xl">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search for any service..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-14 pl-12 pr-4 text-lg bg-card border-border/50 shadow-card"
-                />
-                <Button
-                  size="lg"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 btn-hero"
-                >
-                  Search
-                </Button>
-              </div>
+              <SearchWithCategories 
+                onSearch={(query, category) => {
+                  console.log("Search:", query, "Category:", category);
+                  // Navigate to browse page with search params
+                }}
+                placeholder="Search for any service..."
+                className="w-full"
+              />
             </div>
 
             {/* CTA Buttons */}
