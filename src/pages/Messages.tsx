@@ -29,6 +29,8 @@ import {
   Flag,
   UserX,
   Settings,
+  Pin,
+  BellOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -230,19 +232,52 @@ const Messages = () => {
     }
   };
 
-  const handleChatAction = (action: string) => {
+  const handleChatAction = (action: string, chatId: string) => {
+    const chat = chats.find(c => c.id === chatId);
     switch (action) {
       case "archive":
-        toast({ title: "Chat Archived", description: "This conversation has been archived." });
+        toast({ 
+          title: "Chat Archived", 
+          description: `Conversation with ${chat?.name} has been archived.` 
+        });
+        // Remove from active chats or mark as archived
         break;
       case "delete":
-        toast({ title: "Chat Deleted", description: "This conversation has been deleted." });
+        toast({ 
+          title: "Chat Deleted", 
+          description: `Conversation with ${chat?.name} has been permanently deleted.`,
+          variant: "destructive"
+        });
+        // Remove chat from list
+        if (selectedChat === chatId) {
+          setSelectedChat(chats[0]?.id || "");
+        }
         break;
       case "report":
-        toast({ title: "Chat Reported", description: "This conversation has been reported." });
+        toast({ 
+          title: "Chat Reported", 
+          description: `${chat?.name} has been reported to our support team.` 
+        });
         break;
       case "block":
-        toast({ title: "User Blocked", description: "This user has been blocked." });
+        toast({ 
+          title: "User Blocked", 
+          description: `${chat?.name} has been blocked and cannot contact you.`,
+          variant: "destructive"
+        });
+        // Block user functionality
+        break;
+      case "mute":
+        toast({ 
+          title: "Chat Muted", 
+          description: `Notifications from ${chat?.name} have been muted.` 
+        });
+        break;
+      case "pin":
+        toast({ 
+          title: "Chat Pinned", 
+          description: `Conversation with ${chat?.name} has been pinned to top.` 
+        });
         break;
       default:
         break;
@@ -368,20 +403,20 @@ const Messages = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => handleChatAction("archive")}>
+                          <DropdownMenuItem onClick={() => handleChatAction("archive", selectedChat)}>
                             <Archive className="mr-2 h-4 w-4" />
                             Archive Chat
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleChatAction("delete")}>
+                          <DropdownMenuItem onClick={() => handleChatAction("delete", selectedChat)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete Chat
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleChatAction("report")}>
+                          <DropdownMenuItem onClick={() => handleChatAction("report", selectedChat)}>
                             <Flag className="mr-2 h-4 w-4" />
                             Report User
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleChatAction("block")}>
+                          <DropdownMenuItem onClick={() => handleChatAction("block", selectedChat)}>
                             <UserX className="mr-2 h-4 w-4" />
                             Block User
                           </DropdownMenuItem>

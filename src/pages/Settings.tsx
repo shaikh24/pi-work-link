@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   User,
   Bell,
@@ -30,9 +32,12 @@ import {
   ExternalLink,
   DollarSign,
   ArrowUpDown,
+  AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { useTheme } from "@/components/ui/theme-provider";
 import { useToast } from "@/hooks/use-toast";
+import TwoFactorAuth from "@/components/settings/TwoFactorAuth";
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
@@ -620,11 +625,24 @@ const Settings = () => {
                     Quick Actions
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <Button variant="outline" className="flex items-center justify-center">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center justify-center"
+                      onClick={() => window.open('/wallet', '_blank')}
+                    >
                       <ArrowUpDown className="mr-2 h-4 w-4" />
                       View Transactions
                     </Button>
-                    <Button variant="outline" className="flex items-center justify-center">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center justify-center"
+                      onClick={() => {
+                        toast({
+                          title: "Pi Wallet Connection",
+                          description: "Connecting to Pi Network wallet...",
+                        });
+                      }}
+                    >
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Connect Pi Wallet
                     </Button>
@@ -709,66 +727,10 @@ const Settings = () => {
                 <Separator />
 
                 {/* Two-Factor Authentication */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-medium flex items-center gap-2">
-                        <Shield className="h-4 w-4" />
-                        Two-Factor Authentication
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Add an extra layer of security to your account
-                      </p>
-                    </div>
-                    <Badge variant={twoFactorEnabled ? "default" : "secondary"}>
-                      {twoFactorEnabled ? "Enabled" : "Disabled"}
-                    </Badge>
-                  </div>
-                  
-                  {!twoFactorEnabled ? (
-                    <div className="rounded-lg border border-border/50 p-4 bg-muted/30">
-                      <div className="flex items-start gap-4">
-                        <div className="rounded-lg bg-primary/10 p-3">
-                          <QrCode className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1 space-y-3">
-                          <div>
-                            <h4 className="font-medium">Secure Your Account</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Enable 2FA to protect your account with an additional layer of security
-                            </p>
-                          </div>
-                          <Button onClick={handleEnable2FA} className="w-full sm:w-auto">
-                            <Smartphone className="mr-2 h-4 w-4" />
-                            Enable 2FA
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/30">
-                        <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
-                          <Shield className="h-4 w-4" />
-                          <span className="font-medium">2FA is Active</span>
-                        </div>
-                        <p className="text-sm text-green-600 dark:text-green-300 mt-1">
-                          Your account is protected with two-factor authentication
-                        </p>
-                      </div>
-                      
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <Button variant="outline" size="sm">
-                          <Key className="mr-2 h-3 w-3" />
-                          Backup Codes
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={handleEnable2FA}>
-                          Disable 2FA
-                        </Button>
-                      </div>
-                     </div>
-                   )}
-                </div>
+                <TwoFactorAuth 
+                  isEnabled={twoFactorEnabled} 
+                  onToggle={() => setTwoFactorEnabled(!twoFactorEnabled)} 
+                />
 
                 <Separator />
 
@@ -778,7 +740,57 @@ const Settings = () => {
                   <p className="text-sm text-muted-foreground">
                     Permanently delete your account and all associated data
                   </p>
-                  <Button variant="destructive">Delete Account</Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="destructive">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Account
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Delete Account</DialogTitle>
+                        <DialogDescription>
+                          This action cannot be undone. This will permanently delete your account and remove all data.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Alert>
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            <strong>Warning:</strong> Deleting your account will:
+                            <ul className="list-disc list-inside mt-2 space-y-1">
+                              <li>Remove all your profile information</li>
+                              <li>Delete all your messages and chat history</li>
+                              <li>Cancel all active projects and contracts</li>
+                              <li>Forfeit any pending payments</li>
+                              <li>Remove your wallet and transaction history</li>
+                            </ul>
+                          </AlertDescription>
+                        </Alert>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="confirm-delete">
+                            Type "DELETE" to confirm account deletion
+                          </Label>
+                          <Input
+                            id="confirm-delete"
+                            placeholder="DELETE"
+                            className="font-mono"
+                          />
+                        </div>
+                        
+                        <div className="flex gap-3">
+                          <Button variant="outline" className="flex-1">
+                            Cancel
+                          </Button>
+                          <Button variant="destructive" className="flex-1">
+                            Delete Account Permanently
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardContent>
             </Card>

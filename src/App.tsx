@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Wallet from "./pages/Wallet";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import Browse from "./pages/Browse";
 import Settings from "./pages/Settings";
 import Messages from "./pages/Messages";
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/wallet" element={<Wallet />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
               <Route path="/browse" element={<Browse />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/messages" element={<Messages />} />
