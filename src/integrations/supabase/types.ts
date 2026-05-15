@@ -14,16 +14,325 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      gigs: {
+        Row: {
+          category: string
+          created_at: string
+          delivery_days: number
+          description: string
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          price: number
+          seller_id: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          delivery_days?: number
+          description: string
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          price: number
+          seller_id: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          delivery_days?: number
+          description?: string
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          price?: number
+          seller_id?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          budget: number
+          category: string
+          client_id: string
+          created_at: string
+          description: string
+          duration: string | null
+          id: string
+          image_url: string | null
+          job_type: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget: number
+          category: string
+          client_id: string
+          created_at?: string
+          description: string
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          job_type?: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget?: number
+          category?: string
+          client_id?: string
+          created_at?: string
+          description?: string
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          job_type?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          amount: number
+          buyer_id: string
+          completed_at: string | null
+          created_at: string
+          delivery_date: string | null
+          gig_id: string | null
+          id: string
+          job_id: string | null
+          requirements: string | null
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          completed_at?: string | null
+          created_at?: string
+          delivery_date?: string | null
+          gig_id?: string | null
+          id?: string
+          job_id?: string | null
+          requirements?: string | null
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          completed_at?: string | null
+          created_at?: string
+          delivery_date?: string | null
+          gig_id?: string | null
+          id?: string
+          job_id?: string | null
+          requirements?: string | null
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_gig_id_fkey"
+            columns: ["gig_id"]
+            isOneToOne: false
+            referencedRelation: "gigs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          country: string | null
+          created_at: string
+          display_name: string | null
+          hourly_rate: number | null
+          id: string
+          rating: number | null
+          review_count: number | null
+          skills: string[] | null
+          title: string | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          created_at?: string
+          display_name?: string | null
+          hourly_rate?: number | null
+          id: string
+          rating?: number | null
+          review_count?: number | null
+          skills?: string[] | null
+          title?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          created_at?: string
+          display_name?: string | null
+          hourly_rate?: number | null
+          id?: string
+          rating?: number | null
+          review_count?: number | null
+          skills?: string[] | null
+          title?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      proposals: {
+        Row: {
+          bid_amount: number
+          cover_letter: string
+          created_at: string
+          delivery_days: number
+          freelancer_id: string
+          id: string
+          job_id: string
+          status: string
+        }
+        Insert: {
+          bid_amount: number
+          cover_letter: string
+          created_at?: string
+          delivery_days: number
+          freelancer_id: string
+          id?: string
+          job_id: string
+          status?: string
+        }
+        Update: {
+          bid_amount?: number
+          cover_letter?: string
+          created_at?: string
+          delivery_days?: number
+          freelancer_id?: string
+          id?: string
+          job_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          order_id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          rating?: number
+          reviewee_id?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "freelancer" | "client" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +459,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "freelancer", "client", "user"],
+    },
   },
 } as const
