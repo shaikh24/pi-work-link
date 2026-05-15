@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,33 +17,38 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as any)?.from?.pathname || "/dashboard";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate login process
-    setTimeout(() => {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back to WorkChain Pi!",
-      });
-      setIsLoading(false);
-      // Redirect logic would go here
-    }, 2000);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setIsLoading(false);
+    if (error) {
+      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Welcome back!", description: "Signed in successfully." });
+    navigate(from, { replace: true });
   };
 
-  const handleGoogleLogin = () => {
-    toast({
-      title: "Google Login",
-      description: "Redirecting to Google authentication...",
+  const handleGoogleLogin = async () => {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
+    if (result.error) {
+      toast({ title: "Google sign-in failed", description: String((result.error as any)?.message ?? result.error), variant: "destructive" });
+      return;
+    }
+    if (!result.redirected) navigate("/dashboard", { replace: true });
   };
 
   const handlePiLogin = () => {
     toast({
-      title: "Pi Network Login",
-      description: "Connecting to Pi Network...",
+      title: "Pi Network",
+      description: "Pi SDK integration coming soon. Use email or Google for now.",
     });
   };
 
