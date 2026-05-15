@@ -29,20 +29,27 @@ import {
 import { useTheme } from "@/components/ui/theme-provider";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import SearchWithCategories from "@/components/search/SearchWithCategories";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export const Navbar = () => {
   const location = useLocation();
   const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Mock user data
-  const user = {
-    name: "Alex Johnson",
-    email: "alex@workchain.com",
-    avatar: "",
-    piBalance: 1250.75,
-    unreadMessages: 3,
-    notifications: 5,
+  const displayName = (user?.user_metadata?.display_name as string) || user?.email?.split("@")[0] || "Guest";
+  const userEmail = user?.email || "";
+  const piBalance = 0;
+  const unreadMessages = 0;
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({ title: "Signed out", description: "See you soon!" });
+    navigate("/");
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -113,9 +120,9 @@ export const Navbar = () => {
           <Button variant="ghost" size="icon" className="relative" asChild>
             <Link to="/messages">
               <MessageCircle className="h-4 w-4" />
-              {user.unreadMessages > 0 && (
+              {unreadMessages > 0 && (
                 <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-primary">
-                  {user.unreadMessages}
+                  {unreadMessages}
                 </Badge>
               )}
             </Link>
@@ -125,7 +132,7 @@ export const Navbar = () => {
           <Button variant="ghost" className="text-sm px-3" asChild>
             <Link to="/wallet">
               <Wallet className="mr-2 h-4 w-4" />
-              <span className="font-mono text-accent">{user.piBalance.toFixed(2)} π</span>
+              <span className="font-mono text-accent">{piBalance.toFixed(2)} π</span>
             </Link>
           </Button>
 
@@ -152,13 +159,14 @@ export const Navbar = () => {
           </DropdownMenu>
 
           {/* User Menu */}
+          {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src="" alt={displayName} />
                   <AvatarFallback className="bg-gradient-primary text-white">
-                    {user.name.split(" ").map(n => n[0]).join("")}
+                    {displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -166,9 +174,9 @@ export const Navbar = () => {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.name}</p>
+                  <p className="text-sm font-medium leading-none">{displayName}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    {user.email}
+                    {userEmail}
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -192,12 +200,17 @@ export const Navbar = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          ) : (
+            <Button variant="default" size="sm" asChild>
+              <Link to="/login">Sign In</Link>
+            </Button>
+          )}
         </div>
 
         {/* Mobile Menu Button */}

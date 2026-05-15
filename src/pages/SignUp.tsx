@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,11 +79,14 @@ const SignUp = () => {
   };
 
   const handleGoogleSignUp = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
-    if (error) toast({ title: "Google sign-up failed", description: error.message, variant: "destructive" });
+    if (result.error) {
+      toast({ title: "Google sign-up failed", description: String((result.error as any)?.message ?? result.error), variant: "destructive" });
+      return;
+    }
+    if (!result.redirected) navigate("/dashboard", { replace: true });
   };
 
   const handlePiSignUp = () => {
