@@ -255,7 +255,7 @@ export const Navbar = () => {
             <Button variant="ghost" className="w-full justify-start" asChild>
               <Link to="/wallet">
                 <Wallet className="mr-2 h-4 w-4" />
-                Wallet ({user.piBalance.toFixed(2)} π)
+                Wallet ({piBalance.toFixed(2)} π)
               </Link>
             </Button>
           </div>
