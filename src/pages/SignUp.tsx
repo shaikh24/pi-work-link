@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ const SignUp = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -52,29 +54,41 @@ const SignUp = () => {
     }
 
     setIsLoading(true);
-    
-    // Simulate signup process
-    setTimeout(() => {
-      toast({
-        title: "Account Created Successfully",
-        description: "Welcome to WorkChain Pi! Please verify your email to get started.",
-      });
-      setIsLoading(false);
-      // Redirect logic would go here
-    }, 2000);
+    const { error } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+        data: {
+          display_name: `${formData.firstName} ${formData.lastName}`.trim(),
+          country: formData.country,
+        },
+      },
+    });
+    setIsLoading(false);
+    if (error) {
+      toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: "Account created!",
+      description: "Check your email to verify your account, then sign in.",
+    });
+    navigate("/login");
   };
 
-  const handleGoogleSignUp = () => {
-    toast({
-      title: "Google Sign Up",
-      description: "Redirecting to Google authentication...",
+  const handleGoogleSignUp = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/dashboard` },
     });
+    if (error) toast({ title: "Google sign-up failed", description: error.message, variant: "destructive" });
   };
 
   const handlePiSignUp = () => {
     toast({
-      title: "Pi Network Sign Up",
-      description: "Connecting to Pi Network for account creation...",
+      title: "Pi Network",
+      description: "Pi SDK integration coming soon. Use email or Google for now.",
     });
   };
 
