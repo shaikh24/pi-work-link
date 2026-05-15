@@ -85,6 +85,17 @@ export const Navbar = () => {
           </Button>
 
           <Button
+            variant={isActive("/hire-work") ? "default" : "ghost"}
+            className="text-sm"
+            asChild
+          >
+            <Link to="/hire-work">
+              <Briefcase className="mr-2 h-4 w-4" />
+              Hire Work
+            </Link>
+          </Button>
+
+          <Button
             variant={isActive("/post-job") ? "default" : "ghost"}
             className="text-sm"
             asChild
@@ -208,6 +219,12 @@ export const Navbar = () => {
               <Link to="/browse">
                 <Briefcase className="mr-2 h-4 w-4" />
                 Browse Gigs
+              </Link>
+            </Button>
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link to="/hire-work">
+                <Briefcase className="mr-2 h-4 w-4" />
+                Hire Work
               </Link>
             </Button>
             <Button variant="ghost" className="w-full justify-start" asChild>
