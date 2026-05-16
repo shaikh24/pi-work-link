@@ -170,6 +170,45 @@ export type Database = {
           },
         ]
       }
+      pi_payments: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          completed_at: string | null
+          created_at: string
+          memo: string | null
+          metadata: Json | null
+          payment_id: string
+          status: string
+          txid: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          memo?: string | null
+          metadata?: Json | null
+          payment_id: string
+          status?: string
+          txid?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          memo?: string | null
+          metadata?: Json | null
+          payment_id?: string
+          status?: string
+          txid?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -314,6 +353,24 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_balances: {
+        Row: {
+          balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
