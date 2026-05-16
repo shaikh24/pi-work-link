@@ -177,8 +177,6 @@ const PostJob = () => {
       title: "Job Posted Successfully!",
       description: "Your job posting is now live and visible to freelancers",
     });
-
-    console.log("Job data:", jobData);
   };
 
   return (
