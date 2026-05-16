@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { walletAPI, WalletData, Transaction } from "@/components/wallet/WalletAPI";
+import { topUpWalletWithPi } from "@/lib/piPayments";
 
 const Wallet = () => {
   const [showBalance, setShowBalance] = useState(true);
@@ -125,30 +126,21 @@ const Wallet = () => {
       });
       return;
     }
-    
+
     try {
       setIsLoading(true);
-      const result = await walletAPI.depositPi(parseFloat(depositAmount));
-      
-      if (result.success) {
-        toast({
-          title: "Deposit Successful",
-          description: `Successfully deposited ${depositAmount} π`,
-        });
-        setDepositAmount("");
-        await loadWalletData();
-        await loadTransactions();
-      } else {
-        toast({
-          title: "Deposit Failed",
-          description: result.error,
-          variant: "destructive",
-        });
-      }
+      const result = await topUpWalletWithPi(parseFloat(depositAmount));
+      toast({
+        title: "Top-up Successful",
+        description: `Credited ${depositAmount} π. New balance: ${result.balance.toFixed(4)} π`,
+      });
+      setDepositAmount("");
+      await loadWalletData();
+      await loadTransactions();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to process deposit",
+        title: "Pi Payment Failed",
+        description: (error as Error)?.message ?? "Failed to process top-up",
         variant: "destructive",
       });
     } finally {
