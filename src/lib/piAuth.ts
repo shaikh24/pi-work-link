@@ -11,6 +11,19 @@ declare global {
         accessToken: string;
         user: { uid: string; username: string };
       }>;
+      createPayment: (
+        paymentData: {
+          amount: number;
+          memo: string;
+          metadata: Record<string, unknown>;
+        },
+        callbacks: {
+          onReadyForServerApproval: (paymentId: string) => void;
+          onReadyForServerCompletion: (paymentId: string, txid: string) => void;
+          onCancel: (paymentId: string) => void;
+          onError: (error: Error, payment?: unknown) => void;
+        }
+      ) => void;
     };
   }
 }
@@ -54,11 +67,15 @@ export async function signInWithPi(): Promise<{
   await initPi();
 
   const onIncompletePaymentFound = (payment: unknown) => {
-    console.log("Incomplete Pi payment found", payment);
+    const p = payment as { identifier?: string; transaction?: { txid?: string } } | null;
+    if (!p?.identifier) return;
+    supabase.functions.invoke("pi-payments", {
+      body: { action: "incomplete", paymentId: p.identifier, txid: p.transaction?.txid },
+    }).catch((e) => console.error("Pi incomplete recovery failed", e));
   };
 
   const authResult = await window.Pi!.authenticate(
-    ["username"],
+    ["username", "payments"],
     onIncompletePaymentFound
   );
 
