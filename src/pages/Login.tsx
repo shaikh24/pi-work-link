@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, Mail, Lock, Chrome, Coins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { signInWithPi } from "@/lib/piAuth";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -45,11 +46,18 @@ const Login = () => {
     if (!result.redirected) navigate("/dashboard", { replace: true });
   };
 
-  const handlePiLogin = () => {
-    toast({
-      title: "Pi Network",
-      description: "Pi SDK integration coming soon. Use email or Google for now.",
-    });
+  const handlePiLogin = async () => {
+    try {
+      const u = await signInWithPi();
+      toast({ title: "Welcome", description: `Signed in as ${u.username}` });
+      navigate(from, { replace: true });
+    } catch (err) {
+      toast({
+        title: "Pi sign-in failed",
+        description: (err as Error)?.message ?? String(err),
+        variant: "destructive",
+      });
+    }
   };
 
   return (

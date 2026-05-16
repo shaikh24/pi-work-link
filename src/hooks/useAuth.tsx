@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { initPi, signInWithPi } from "@/lib/piAuth";
 
 interface AuthContextType {
   user: User | null;
@@ -34,6 +35,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
       setLoading(false);
+
+      // Auto-trigger Pi authentication on app load if not signed in.
+      // Only attempts inside Pi Browser (where window.Pi is injected).
+      if (!existingSession) {
+        initPi()
+          .then(() => signInWithPi())
+          .catch((err) => {
+            console.log("Pi auto sign-in skipped:", err?.message ?? err);
+          });
+      }
     });
 
     return () => subscription.unsubscribe();
