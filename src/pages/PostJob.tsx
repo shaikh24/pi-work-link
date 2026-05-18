@@ -28,6 +28,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const PostJob = () => {
   const [jobData, setJobData] = useState({
@@ -47,6 +50,9 @@ const PostJob = () => {
 
   const [skillInput, setSkillInput] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
 
   const categories = [
     { 
@@ -143,7 +149,7 @@ const PostJob = () => {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validation
     if (!jobData.title.trim()) {
       toast({
@@ -172,11 +178,36 @@ const PostJob = () => {
       return;
     }
 
-    // Here you would submit to your backend
+    if (!user) {
+      toast({ title: "Sign in required", description: "Please sign in to post a job.", variant: "destructive" });
+      navigate("/login");
+      return;
+    }
+
+    setSubmitting(true);
+    const { error } = await supabase.from("jobs").insert({
+      client_id: user.id,
+      title: jobData.title.trim(),
+      description: jobData.description.trim(),
+      category: selectedCategory?.name ?? jobData.category,
+      budget: jobData.budgetAmount[0],
+      job_type: jobData.budgetType === "hourly" ? "hourly" : "one-time",
+      duration: jobData.projectDuration || null,
+      tags: jobData.skills,
+      status: "open",
+    });
+    setSubmitting(false);
+
+    if (error) {
+      toast({ title: "Failed to post job", description: error.message, variant: "destructive" });
+      return;
+    }
+
     toast({
       title: "Job Posted Successfully!",
-      description: "Your job posting is now live and visible to freelancers",
+      description: "Your job is now live and visible on the home page.",
     });
+    navigate("/");
   };
 
   return (
@@ -574,8 +605,9 @@ const PostJob = () => {
                   onClick={handleSubmit}
                   className="w-full btn-hero"
                   size="lg"
+                  disabled={submitting}
                 >
-                  Post Job & Get Quotes
+                  {submitting ? "Posting…" : "Post Job & Get Quotes"}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2 text-center">
                   Posting is free. You only pay when you hire someone.
