@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-bg.jpg";
 import webDevGig from "@/assets/gig-web-dev.jpg";
 import designGig from "@/assets/gig-design.jpg";
@@ -141,6 +142,26 @@ const topFreelancers = [
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [latestJobs, setLatestJobs] = useState<Array<{
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    budget: number;
+    job_type: string;
+    tags: string[] | null;
+    created_at: string;
+  }>>([]);
+
+  useEffect(() => {
+    supabase
+      .from("jobs")
+      .select("id,title,description,category,budget,job_type,tags,created_at")
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(8)
+      .then(({ data }) => setLatestJobs((data as any) ?? []));
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -337,6 +358,63 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Latest Jobs */}
+      {latestJobs.length > 0 && (
+        <section className="py-20">
+          <div className="container">
+            <div className="mb-12 flex items-center justify-between">
+              <div>
+                <h2 className="mb-4 text-3xl font-bold">Latest Jobs</h2>
+                <p className="text-muted-foreground">
+                  Fresh opportunities posted by clients on WorkChain Pi
+                </p>
+              </div>
+              <Button variant="outline" asChild>
+                <Link to="/hire-work">
+                  View All
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {latestJobs.map((job) => (
+                <Link key={job.id} to={`/hire-work?job=${job.id}`}>
+                  <Card className="card-interactive h-full">
+                    <CardContent className="p-5">
+                      <Badge variant="secondary" className="mb-3 text-xs">
+                        {job.category}
+                      </Badge>
+                      <h3 className="mb-2 font-semibold line-clamp-2">{job.title}</h3>
+                      <p className="mb-3 text-sm text-muted-foreground line-clamp-3">
+                        {job.description}
+                      </p>
+                      {job.tags && job.tags.length > 0 && (
+                        <div className="mb-3 flex flex-wrap gap-1">
+                          {job.tags.slice(0, 3).map((tag) => (
+                            <Badge key={tag} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between pt-2 border-t border-border">
+                        <span className="text-sm text-muted-foreground">
+                          {job.job_type === "hourly" ? "Hourly" : "Fixed"}
+                        </span>
+                        <span className="text-lg font-bold text-accent">
+                          {Number(job.budget).toFixed(2)} π
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Top Freelancers */}
       <section className="py-20">

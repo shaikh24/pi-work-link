@@ -17,7 +17,10 @@ import Settings from "./pages/Settings";
 import Messages from "./pages/Messages";
 import PostJob from "./pages/PostJob";
 import HireWork from "./pages/HireWork";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ContactDeveloper from "./pages/ContactDeveloper";
 import NotFound from "./pages/NotFound";
+import { Footer } from "@/components/layout/footer";
 
 const queryClient = new QueryClient();
 
@@ -42,9 +45,12 @@ const App = () => (
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/post-job" element={<ProtectedRoute><PostJob /></ProtectedRoute>} />
               <Route path="/hire-work" element={<HireWork />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/contact" element={<ContactDeveloper />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <Footer />
           </div>
           </AuthProvider>
         </BrowserRouter>
