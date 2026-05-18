@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-bg.jpg";
 import webDevGig from "@/assets/gig-web-dev.jpg";
 import designGig from "@/assets/gig-design.jpg";
@@ -141,6 +142,26 @@ const topFreelancers = [
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [latestJobs, setLatestJobs] = useState<Array<{
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    budget: number;
+    job_type: string;
+    tags: string[] | null;
+    created_at: string;
+  }>>([]);
+
+  useEffect(() => {
+    supabase
+      .from("jobs")
+      .select("id,title,description,category,budget,job_type,tags,created_at")
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(8)
+      .then(({ data }) => setLatestJobs((data as any) ?? []));
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
